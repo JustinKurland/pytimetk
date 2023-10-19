@@ -144,6 +144,9 @@ def pad_by_time(
         
         padded_df.sort_values(by=[date_column], inplace=True)
         padded_df.reset_index(drop=True, inplace=True)
+
+        col_name = padded_df.columns[padded_df.nunique() == 1][0]
+        padded_df = padded_df.assign(**{f'{col_name}': padded_df[col_name].ffill()})
         
         return padded_df
     
