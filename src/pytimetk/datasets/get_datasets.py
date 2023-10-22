@@ -1,4 +1,3 @@
-
 import pandas as pd
 import polars as pl
 from importlib.resources import files
@@ -92,13 +91,13 @@ def load_dataset(
     # Load the dataset
     package_path = files('pytimetk')
     # Reference to the a file within the package
-    text_path = f"{package_path}/datasets/{name}.csv"
+    text_path = f"{package_path}/datasets/{name}.parquet"
     
     if engine == 'pandas':
-        with open(text_path, 'r', encoding='utf-8') as f:
-            df = pd.read_csv(f, **kwargs)
+        with open(text_path, 'r') as f:
+            df = pd.read_parquet(f, **kwargs)
     elif engine == 'polars':
-        df = pl.read_csv(text_path).to_pandas()
+        df = pl.read_parquet(text_path).to_pandas()
 
     return df
 
@@ -108,7 +107,20 @@ def get_available_datasets():
     
     The `get_available_datasets` function returns a sorted list of available 
     dataset names from the `pytimetk.datasets` module. The available datasets are:
-    
+
+    - `m4_hourly`: The M4 hourly dataset
+    - `m4_daily`: The M4 daily dataset
+    - `m4_weekly`: The M4 weekly dataset
+    - `m4_monthly`: The M4 monthly dataset
+    - `m4_quarterly`: The M4 quarterly dataset
+    - `m4_yearly`: The M4 yearly dataset
+    - `bike_sharing_daily`: The bike sharing daily dataset
+    - `bike_sales_sample`: The bike sales sample dataset
+    - `taylor_30_min`: The Taylor 30 minute dataset
+    - `walmart_sales_weekly`: The Walmart sales weekly dataset
+    - `wikipedia_traffic_daily`: The Wikipedia traffic daily dataset
+    - `stocks_daily`: The MAANNG stocks dataset
+    - `expedia`: Expedia Hotel Time Series Dataset
     
     
     Returns
@@ -129,8 +141,8 @@ def get_available_datasets():
     
     pathlist   = list(files("pytimetk.datasets").iterdir())
     file_names = [path.name for path in pathlist]
-    dataset_list = [item for item in file_names if item.endswith(".csv")]
-    dataset_list = [name.rstrip('.csv') for name in dataset_list]
+    dataset_list = [item for item in file_names if item.endswith(".parquet")]
+    dataset_list = [name.rstrip('.parquet') for name in dataset_list]
     dataset_list = sorted(dataset_list)
     
     return dataset_list
