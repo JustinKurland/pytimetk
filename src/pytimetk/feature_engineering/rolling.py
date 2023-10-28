@@ -13,6 +13,7 @@ from functools import partial
 from pytimetk.utils.checks import check_dataframe_or_groupby, check_date_column, check_value_column
 from pytimetk.utils.parallel_helpers import conditional_tqdm, get_threads
 from pytimetk.utils.polars_helpers import update_dict
+from pytimetk.utils.memory_helpers import reduce_memory_usage
 
 @pf.register_dataframe_method
 def augment_rolling(
@@ -299,7 +300,7 @@ def _augment_rolling_pandas(
         result_dfs = [_process_single_roll(data_copy, value_column, window_func, window, min_periods, center, **kwargs)]
     
     result_df = pd.concat(result_dfs).sort_index()  # Sort by the original index
-    return result_df
+    return reduce_memory_usage(result_df)
 
 
 def _augment_rolling_polars(
@@ -456,7 +457,7 @@ def _augment_rolling_polars(
             .drop('index') \
             .to_pandas()
                 
-    return df
+    return reduce_memory_usage(df)
 
 
 @pf.register_dataframe_method
@@ -678,7 +679,7 @@ def augment_rolling_apply(
     result_df = pd.concat([data_copy.reset_index(drop=True), result_df.reset_index(drop=True)], axis=1)
     result_df.index = original_index
 
-    return result_df
+    return reduce_memory_usage(result_df)
 
 # Monkey patch the method to pandas groupby objects
 pd.core.groupby.generic.DataFrameGroupBy.augment_rolling_apply = augment_rolling_apply
@@ -813,4 +814,4 @@ def _process_single_roll(group_df, value_column, window_func, window, min_period
                     raise TypeError(f"Invalid function type: {type(func)}") 
           
         result_dfs.append(group_df)
-    return pd.concat(result_dfs)
+    return reduce_memory_usage(pd.concat(result_dfs))
