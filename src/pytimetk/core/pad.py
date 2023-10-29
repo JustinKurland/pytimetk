@@ -3,6 +3,7 @@ import pandas_flavor as pf
 from typing import Union
 
 from pytimetk.utils.checks import check_dataframe_or_groupby, check_date_column, check_value_column
+from pytimetk.utils.memory_helpers import reduce_memory_usage
 
 @pf.register_dataframe_method
 def pad_by_time(
@@ -151,7 +152,7 @@ def pad_by_time(
 
     # Handling DataFrame
     if isinstance(data, pd.DataFrame):
-        df = data.copy()
+        df = reduce_memory_usage(data.copy())
         df[date_column] = pd.to_datetime(df[date_column])
         df.sort_values(by=[date_column], inplace=True)
         
@@ -180,7 +181,7 @@ def pad_by_time(
     elif isinstance(data, pd.core.groupby.generic.DataFrameGroupBy):
         group_names = data.grouper.names
         data = data.obj
-        df = data.copy()
+        df = reduce_memory_usage(data.copy())
         
         df[date_column] = pd.to_datetime(df[date_column])
         df.sort_values(by=[*group_names, date_column], inplace=True)
@@ -194,7 +195,7 @@ def pad_by_time(
             end_date=end_date
         )
         
-        return padded_df[df.columns]
+        return reduce_memory_usage(padded_df[df.columns])
 
 def _pad_by_time_vectorized(
     data: pd.DataFrame, 
@@ -224,7 +225,7 @@ def _pad_by_time_vectorized(
     # Merge to introduce NaN values for missing rows
     padded_data = pd.merge(cartesian_df, data, on=groupby_columns + [date_column], how='left')
     
-    return padded_data
+    return reduce_memory_usage(padded_data)
 
 # Monkey patch the method to pandas groupby objects
 pd.core.groupby.generic.DataFrameGroupBy.pad_by_time = pad_by_time
